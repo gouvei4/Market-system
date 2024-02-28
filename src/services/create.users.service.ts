@@ -1,11 +1,14 @@
 import { db } from '../database/connection';
 import { IUser } from '../types/user';
-import { encrypt } from '../utils/crypt';
+import bcrypt from 'bcrypt';
+
 import { Request, Response } from 'express';
 
 class CreateUserService {
   public async createUser(request: Request, response: Response) {
     const user: IUser = request.body;
+    const password = user.password;
+    const hashedPassword = await bcrypt.hash(password, 10);
     try {
       await db('users')
         .insert({
@@ -13,7 +16,7 @@ class CreateUserService {
           email: user.email,
           active: user.active,
           phone: user.phone,
-          password: await encrypt('sha1', user.password),
+          password: hashedPassword,
         })
         .returning('id')
         .then((data) =>
