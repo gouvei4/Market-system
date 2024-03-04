@@ -2,23 +2,20 @@ import { Request, Response } from 'express';
 import { db } from '../database/connection';
 
 class ListUsersService {
-  public listService(request: Request, response: Response) {
+  public async listService(request: Request, response: Response) {
     const { id, email } = request.query;
     try {
+      
       const usersSql = db('users').select(
         'id',
         'name',
         'email',
         'active',
         'phone',
-        'password',
+        'user_type_id',
       );
-      if (id) {
-        usersSql.where({ id });
-      }
-      if (email) {
-        usersSql.where({ email });
-      }
+      id ? usersSql.where({ id }) : null;
+      email ? usersSql.where({ email }) : null;
       usersSql.then((data) => response.json(data));
       usersSql.catch((error) =>
         response

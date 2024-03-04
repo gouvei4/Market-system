@@ -14,25 +14,19 @@ class LoginUserService {
         .where('active', true)
         .first();
 
-      if (user) {
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (passwordMatch) {
-          const token = jwt.sign(
-            { id: user.id },
-            process?.env?.SECRET_JWT || '',
-            {
-              expiresIn: '24h',
-            },
-          );
-  
-          response.json({ ...user, auth: true, token });
-        } else {
-          response.status(401).json({ message: 'Invalid login' });
-        }
-      } else {
-        response.status(401).json({ message: 'Invalid login' });
-      }
+        (user && (await bcrypt.compare(password, user.password)))
+        ? (() => {
+            const token = jwt.sign(
+              { id: user.id },
+              process?.env?.SECRET_JWT || '',
+              {
+                expiresIn: '24h',
+              },
+            );
+            response.json({ ...user, auth: true, token });
+          })()
+        : response.status(401).json({ message: 'Invalid login' });
+      
     } catch (error) {
       response.status(400).json({ message: 'Error during login', error });
     }
